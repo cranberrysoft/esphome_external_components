@@ -5,17 +5,42 @@
 #include "sen6x.h"
 
 namespace esphome {
-namespace sen6x {
+namespace sen5x {
 
-template<typename... Ts> class StartFanAction : public Action<Ts...> {
+template<typename... Ts> class SetAmbientPressurehPa : public Action<Ts...>, public Parented<SEN5XComponent> {
  public:
-  explicit StartFanAction(SEN5XComponent *sen6x) : sen6x_(sen6x) {}
-
-  void play(Ts... x) override { this->sen6x_->start_fan_cleaning(); }
+  void play(Ts... x) override {
+    if (this->value_.has_value()) {
+      this->parent_->set_ambient_pressure_compensation(this->value_.value(x...));
+    }
+  }
 
  protected:
-  SEN5XComponent *sen6x_;
+  TEMPLATABLE_VALUE(uint16_t, value)
 };
 
-}  // namespace sen6x
+template<typename... Ts>
+class PerformForcedCo2CalibrationAction : public Action<Ts...>, public Parented<SEN5XComponent> {
+ public:
+  void play(Ts... x) override {
+    if (this->value_.has_value()) {
+      this->parent_->perform_forced_co2_calibration(this->value_.value(x...));
+    }
+  }
+
+ protected:
+  TEMPLATABLE_VALUE(uint16_t, value)
+};
+
+template<typename... Ts> class StartFanAction : public Action<Ts...>, public Parented<SEN5XComponent> {
+ public:
+  void play(Ts... x) override { this->parent_->start_fan_cleaning(); }
+};
+
+template<typename... Ts> class ActivateHeaterAction : public Action<Ts...>, public Parented<SEN5XComponent> {
+ public:
+  void play(Ts... x) override { this->parent_->activate_heater(); }
+};
+
+}  // namespace sen5x
 }  // namespace esphome
